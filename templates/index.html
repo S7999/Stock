@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Price Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 400px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Stock Prediction</h1>
+    
+    <!-- Dropdown for selecting stock -->
+    <label for="stock">Select Stock:</label>
+    <select id="stock" name="stock">
+        <option value="stock_1">Stock 1</option>
+        <option value="stock_2">Stock 2</option>
+        <option value="stock_3">Stock 3</option>
+        <option value="stock_4">Stock 4</option>
+        <option value="stock_5">Stock 5</option>
+        <option value="stock_6">Stock 6</option>
+        <option value="stock_7">Stock 7</option>
+        <option value="stock_8">Stock 8</option>
+        <option value="stock_9">Stock 9</option>
+        <option value="stock_10">Stock 10</option>
+    </select>
+
+    <!-- Input fields for closing price and opening price -->
+    <label for="close">Last Day Closing Price:</label>
+    <input type="number" id="close" name="close" step="0.01" required>
+
+    <label for="open">Today Opening Price:</label>
+    <input type="number" id="open" name="open" step="0.01" required>
+
+    <!-- Predict Button -->
+    <button id="predictBtn" onclick="makePrediction()">Predict</button>
+
+    <!-- Div to display the result -->
+    <div class="result" id="result"></div>
+</div>
+
+<!-- JavaScript to handle prediction -->
+<script>
+function makePrediction() {
+    const stock = document.getElementById("stock").value;
+    const close = document.getElementById("close").value;
+    const open = document.getElementById("open").value;
+
+    // Validate the input
+    if (!stock || !close || !open) {
+        alert("Please fill in all fields");
+        return;
+    }
+
+    // Create the feature data as per your model's feature set
+    const data = {
+        stock_name: stock,
+        features: [
+            {
+                "Open": parseFloat(open),
+                "High": parseFloat(open * 1.02),  // Dummy data for other features
+                "Low": parseFloat(open * 0.98),   // Dummy data for other features
+                "Volume": 1000,                   // Dummy volume data
+                "lag_1": parseFloat(close),       // Use last close for lag features
+                "lag_2": parseFloat(close) * 0.99,
+                "lag_3": parseFloat(close) * 1.01,
+                "MA_10": parseFloat(close) * 1.02,
+                "MA_50": parseFloat(close) * 1.01,
+                "RSI": 50,                        // Dummy RSI value
+                "Volatility": 1.5,                // Dummy Volatility
+                "MACD": 0.5,                      // Dummy MACD
+                "MACD_Signal": 0.4,               // Dummy MACD Signal
+                "Bollinger_Upper": parseFloat(open * 1.05),
+                "Bollinger_Lower": parseFloat(open * 0.95)
+            }
+        ]
+    };
+
+    // Make the POST request to the Flask server
+    fetch("/predict", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        // Display the predicted result and trading strategy
+        let predictedPrice = result.predictions[0];
+        let strategy = (predictedPrice > open) ? "Buy" : "Sell";
+
+        document.getElementById("result").innerHTML = `
+            <h3>Predicted Closing Price: ${predictedPrice.toFixed(2)}</h3>
+            <h3>Recommended Trading Strategy: ${strategy}</h3>
+        `;
+    })
+    .catch(error => {
+        console.error("Error:", error);
+    });
+}
+
+
+</script>
+
+</body>
+</html>
